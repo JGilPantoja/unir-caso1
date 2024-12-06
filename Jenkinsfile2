@@ -20,7 +20,7 @@ pipeline {
             steps {
                 echo 'NO HAY QUE COMPILAR NADA. ESTO ES PYTHON'
                 unstash 'source-code'
-                sh "ls -la"
+                sh 'bash -c "ls -la"'
             }
         }
 
