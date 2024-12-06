@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/example"
+  },
+  "response": {
+    "status": 200,
+    "body": "This is a mocked response",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
+
