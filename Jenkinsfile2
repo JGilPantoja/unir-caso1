@@ -1,55 +1,56 @@
 pipeline {
-    agent none
+    agent any
     
     environment {
         PATH = "/opt/homebrew/bin:/Users/javi/.local/bin:${env.PATH}" 
     }
 
     stages {
-        
         stage('getCode') {
-            agent { label '' }
             steps {
                 git 'https://github.com/JGilPantoja/unir-caso1'
-                stash includes: '**', name: 'source-code'
+                stash includes: '**', name: 'source'
             }
         }
         
         stage('Build') {
-            agent { label '' }
             steps {
+                unstash 'source'
                 echo 'NO HAY QUE COMPILAR NADA. ESTO ES PYTHON'
-                unstash 'source-code'
-                sh 'bash -c "ls -la"'
+                sh "ls -la" 
+                sh "pwd"
             }
         }
 
         stage('Tests') {
             parallel {
                 stage('Unit') {
-                    agent { label 'agent1' }
+                    agent {
+                        label 'agent1'
+                    }
                     steps {
-                        echo 'Ejecutando pruebas unitarias en agent1'
-                        unstash 'source-code'
+                        unstash 'source'
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             sh '''
                                 export PYTHONPATH=$(pwd)
                                 pytest test/unit --junitxml=result-unit.xml
                             '''
+                            stash includes: 'result-unit.xml', name: 'unit-results'
                         }
-                        stash includes: 'result-unit.xml', name: 'unit-results'
-                        deleteDir() 
                     }
                 }
                 
                 stage('Rest') {
-                    agent { label 'agent2' }
+                    agent {
+                        label 'agent2'
+                    }
                     steps {
-                        unstash 'source-code'
+                        unstash 'source'
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             sh '''
                                 export FLASK_APP=app/api.py:api_application
                                 nohup flask run --port=5000 > flask.log 2>&1 &
+                                
                                 nohup java -jar /usr/local/wiremock-standalone-3.10.0.jar --port 8081 --root-dir /Users/javi/Downloads/unir/unir-caso1/wiremock > wiremock.log 2>&1 &
                                 
                                 for i in {1..10}; do
@@ -68,22 +69,19 @@ pipeline {
                                 pkill -f "flask run"
                                 pkill -f "wiremock"
                             '''
+                            stash includes: 'result-rest.xml', name: 'rest-results'
                         }
-                        stash includes: 'result-rest.xml', name: 'rest-results'
-                        deleteDir() 
                     }
                 }
             }    
         }
-
+        
         stage('Results') {
-            agent { label '' }
             steps {
                 unstash 'unit-results'
                 unstash 'rest-results'
                 junit 'result-*.xml'
-                deleteDir()
             }
-        }       
+        }
     }
 }
