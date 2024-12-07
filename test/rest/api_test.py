@@ -64,11 +64,12 @@ class TestApi(unittest.TestCase):
         url = f"{BASE_URL}/calc/divide/10/0"
         try:
             response = urlopen(url, timeout=DEFAULT_TIMEOUT)
-        except Exception as e:
-            self.assertIsInstance(e, http.client.HTTPException, "No se devolvió un error HTTP esperado")
-            self.assertEqual(
-                e.code, http.client.NOT_ACCEPTABLE, f"Error esperado 406, pero se devolvió {e.code}"
-            )
+        except urllib.error.HTTPError as e:
+            self.assertEqual(e.code, 406, "No devolvió el código de error esperado (406)")
+            self.assertEqual(e.reason, "NOT ACCEPTABLE", "El mensaje de error no coincide")
+        else:
+            self.fail("No se lanzó un error HTTP cuando el divisor es 0")
+
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
