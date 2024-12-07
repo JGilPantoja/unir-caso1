@@ -13,7 +13,7 @@ pipeline {
                     hostname
                     echo ${WORKSPACE}
                 '''
-                git branch: 'develop', url: 'https://github.com/JGilPantoja/unir-caso1'
+                git branch: 'feature_fix_racecond', url: 'https://github.com/JGilPantoja/unir-caso1'
                 stash includes: '**', name: 'source'
                 deleteDir()
             }
