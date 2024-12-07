@@ -2,8 +2,7 @@ import http.client
 import os
 import unittest
 from urllib.request import urlopen
-from urllib.error import URLError
-
+from urllib.error import HTTPError  
 
 import pytest
 
@@ -47,7 +46,7 @@ class TestApi(unittest.TestCase):
             response.read().decode(), "12", "ERROR MULTIPLY"
         )
 
-        with self.assertRaises(URLError):
+        with self.assertRaises(HTTPError):
             url = f"{BASE_URL}/calc/multiply/a/4"
             urlopen(url, timeout=DEFAULT_TIMEOUT)
 
@@ -64,7 +63,7 @@ class TestApi(unittest.TestCase):
         url = f"{BASE_URL}/calc/divide/10/0"
         try:
             response = urlopen(url, timeout=DEFAULT_TIMEOUT)
-        except urllib.error.HTTPError as e:
+        except HTTPError as e:
             self.assertEqual(e.code, 406, "No devolvió el código de error esperado (406)")
             self.assertEqual(e.reason, "NOT ACCEPTABLE", "El mensaje de error no coincide")
         else:
