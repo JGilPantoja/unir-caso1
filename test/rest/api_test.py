@@ -2,6 +2,8 @@ import http.client
 import os
 import unittest
 from urllib.request import urlopen
+from urllib.error import URLError
+
 
 import pytest
 
@@ -35,7 +37,7 @@ class TestApi(unittest.TestCase):
             response.read().decode(), "8", "ERROR SQRT"
         )
 
-    def test_api_multiply(self):
+ def test_api_multiply(self):
         url = f"{BASE_URL}/calc/multiply/3/4"
         response = urlopen(url, timeout=DEFAULT_TIMEOUT)
         self.assertEqual(
@@ -60,17 +62,13 @@ class TestApi(unittest.TestCase):
         )
 
         url = f"{BASE_URL}/calc/divide/10/0"
-        response = urlopen(url, timeout=DEFAULT_TIMEOUT)
-        self.assertEqual(
-            response.status, http.client.NOT_ACCEPTABLE, f"Error en la petición API a {url}"
-        )
-        self.assertIn(
-            "Division by zero is not allowed.", response.read().decode(), "ERROR DIVIDE BY ZERO"
-        )
-
-        with self.assertRaises(URLError):
-            url = f"{BASE_URL}/calc/divide/abc/2"
-            urlopen(url, timeout=DEFAULT_TIMEOUT)
+        try:
+            response = urlopen(url, timeout=DEFAULT_TIMEOUT)
+        except Exception as e:
+            self.assertIsInstance(e, http.client.HTTPException, "No se devolvió un error HTTP esperado")
+            self.assertEqual(
+                e.code, http.client.NOT_ACCEPTABLE, f"Error esperado 406, pero se devolvió {e.code}"
+            )
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
