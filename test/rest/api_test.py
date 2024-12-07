@@ -37,7 +37,7 @@ class TestApi(unittest.TestCase):
             response.read().decode(), "8", "ERROR SQRT"
         )
 
- def test_api_multiply(self):
+    def test_api_multiply(self):
         url = f"{BASE_URL}/calc/multiply/3/4"
         response = urlopen(url, timeout=DEFAULT_TIMEOUT)
         self.assertEqual(
