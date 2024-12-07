@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     environment {
         PATH = "/opt/homebrew/bin:/Users/javi/.local/bin:${env.PATH}" 
     }
@@ -8,17 +8,29 @@ pipeline {
     stages {
         stage('getCode') {
             steps {
+                sh '''
+                    whoami
+                    hostname
+                    echo ${WORKSPACE}
+                '''
                 git 'https://github.com/JGilPantoja/unir-caso1'
                 stash includes: '**', name: 'source'
+                deleteDir()
             }
         }
         
         stage('Build') {
             steps {
+                sh '''
+                    whoami
+                    hostname
+                    echo ${WORKSPACE}
+                '''
                 unstash 'source'
                 echo 'NO HAY QUE COMPILAR NADA. ESTO ES PYTHON'
                 sh "ls -la" 
                 sh "pwd"
+                deleteDir()
             }
         }
 
@@ -29,6 +41,11 @@ pipeline {
                         label 'agent1'
                     }
                     steps {
+                        sh '''
+                            whoami
+                            hostname
+                            echo ${WORKSPACE}
+                        '''
                         unstash 'source'
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             sh '''
@@ -37,6 +54,7 @@ pipeline {
                             '''
                             stash includes: 'result-unit.xml', name: 'unit-results'
                         }
+                        deleteDir()
                     }
                 }
                 
@@ -45,6 +63,11 @@ pipeline {
                         label 'agent2'
                     }
                     steps {
+                        sh '''
+                            whoami
+                            hostname
+                            echo ${WORKSPACE}
+                        '''
                         unstash 'source'
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             sh '''
@@ -71,6 +94,7 @@ pipeline {
                             '''
                             stash includes: 'result-rest.xml', name: 'rest-results'
                         }
+                        deleteDir()
                     }
                 }
             }    
@@ -78,9 +102,15 @@ pipeline {
         
         stage('Results') {
             steps {
+                sh '''
+                    whoami
+                    hostname
+                    echo ${WORKSPACE}
+                '''
                 unstash 'unit-results'
                 unstash 'rest-results'
                 junit 'result-*.xml'
+                deleteDir()
             }
         }
     }
