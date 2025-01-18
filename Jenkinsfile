@@ -26,18 +26,15 @@ pipeline {
                 '''
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     sh '''
-                        if [ -f "${WORKSPACE}/unit_tests_executed.flag" ]; then
-                            echo "Las pruebas unitarias ya se ejecutaron en este pipeline."
-                            exit 1
-                        fi
-
+                        # Ejecutar pruebas unitarias con cobertura
                         export PYTHONPATH=$(pwd)
-                        pytest test/unit --junitxml=result-unit.xml
-                        touch "${WORKSPACE}/unit_tests_executed.flag"
+                        /Users/javi/.local/bin/coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest test/unit
+                        /Users/javi/.local/bin/coverage report
                     '''
                 }
             }
         }
+
         stage('Static') {
             steps {
                 sh '''
@@ -50,6 +47,20 @@ pipeline {
                         [threshold: 10, type: 'TOTAL', unstable: false] 
                     ]
                 )
+            }
+        }
+        stage('Coverage') {
+            steps {
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    sh '''
+                        export PYTHONPATH=$(pwd)
+                        /Users/javi/.local/bin/coverage combine
+                        /Users/javi/.local/bin/coverage xml
+                    '''
+                }
+                cobertura coberturaReportFile: 'coverage.xml',
+                          conditionalCoverageTargets: '90,80,80',
+                          lineCoverageTargets: '95,85,90'
             }
         }
 
