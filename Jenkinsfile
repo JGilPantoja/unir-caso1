@@ -24,7 +24,6 @@ pipeline {
                     hostname
                     echo ${WORKSPACE}
                 '''
-                unstash 'source'
                 echo 'NO HAY QUE COMPILAR NADA. ESTO ES PYTHON'
                 sh "ls -la" 
                 sh "pwd"
