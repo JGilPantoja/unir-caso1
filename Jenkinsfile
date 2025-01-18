@@ -25,13 +25,11 @@ pipeline {
                     echo ${WORKSPACE}
                 '''
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    # Verificar si ya se ejecutaron
                     if [ -f ${WORKSPACE}/unit_tests_executed.flag ]; then
                         echo "Las pruebas unitarias ya se ejecutaron en este pipeline."
                         exit 1
                     fi
 
-                    # Ejecutar las pruebas unitarias y marcar como ejecutado
                     export PYTHONPATH=$(pwd)
                     pytest test/unit --junitxml=result-unit.xml
                     touch ${WORKSPACE}/unit_tests_executed.flag
