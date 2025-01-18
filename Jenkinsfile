@@ -26,7 +26,6 @@ pipeline {
                 '''
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                     sh '''
-                        # Ejecutar pruebas unitarias con cobertura
                         export PYTHONPATH=$(pwd)
                         /Users/javi/.local/bin/coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest test/unit
                         /Users/javi/.local/bin/coverage report
