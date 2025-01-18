@@ -17,91 +17,25 @@ pipeline {
             }
         }
         
-        stage('Build') {
+        stage('Unit') {
             steps {
                 sh '''
                     whoami
                     hostname
                     echo ${WORKSPACE}
                 '''
-                echo 'NO HAY QUE COMPILAR NADA. ESTO ES PYTHON'
-                sh "ls -la" 
-                sh "pwd"
-                
-            }
-        }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    # Verificar si ya se ejecutaron
+                    if [ -f ${WORKSPACE}/unit_tests_executed.flag ]; then
+                        echo "Las pruebas unitarias ya se ejecutaron en este pipeline."
+                        exit 1
+                    fi
 
-        stage('Tests') {
-            parallel {
-                stage('Unit') {
-                    steps {
-                        sh '''
-                            whoami
-                            hostname
-                            echo ${WORKSPACE}
-                        '''
-                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            sh '''
-                                export PYTHONPATH=$(pwd)
-                                pytest test/unit --junitxml=result-unit.xml
-                            '''
-                        }
-                        
-                    }
+                    # Ejecutar las pruebas unitarias y marcar como ejecutado
+                    export PYTHONPATH=$(pwd)
+                    pytest test/unit --junitxml=result-unit.xml
+                    touch ${WORKSPACE}/unit_tests_executed.flag
                 }
-                
-                stage('Rest') {
-                    steps {
-                        sh '''
-                            whoami
-                            hostname
-                            echo ${WORKSPACE}
-                        '''
-                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            sh '''
-                                    
-                                flaskPort=$((5000 + RANDOM % 1000))
-                                mockPort=$((8081 + RANDOM % 1000))
-                                export FLASK_PORT=${flaskPort}
-                                export MOCK_PORT=${mockPort}
-
-                                export FLASK_APP=app/api.py:api_application
-                                nohup flask run --port=${FLASK_PORT} > flask.log 2>&1 &
-                                
-                                nohup java -jar /usr/local/wiremock-standalone-3.10.0.jar --port=${MOCK_PORT} --root-dir /path/to/wiremock > wiremock.log 2>&1 &
-                                
-                                for i in {1..10}; do
-                                    curl -s http://127.0.0.1:${FLASK_PORT} > /dev/null && break
-                                    sleep 1
-                                done
-
-                                for i in {1..10}; do
-                                    curl -s http://127.0.0.1:${MOCK_PORT}/__admin > /dev/null && break
-                                    sleep 1
-                                done
-                                
-                                export PYTHONPATH=$(pwd)
-                                pytest --junitxml=result-rest.xml test/rest
-                                
-                                pkill -f "flask run"
-                                pkill -f "wiremock"
-                            '''
-                        }
-                        
-                    }
-                }
-            }    
-        }
-        
-        stage('Results') {
-            steps {
-                sh '''
-                    whoami
-                    hostname
-                    echo ${WORKSPACE}
-                '''
-                junit 'result-*.xml'
-                
             }
         }
     }
