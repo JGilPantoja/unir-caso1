@@ -40,13 +40,11 @@ pipeline {
                             hostname
                             echo ${WORKSPACE}
                         '''
-                        unstash 'source'
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             sh '''
                                 export PYTHONPATH=$(pwd)
                                 pytest test/unit --junitxml=result-unit.xml
                             '''
-                            stash includes: 'result-unit.xml', name: 'unit-results'
                         }
                         
                     }
@@ -59,7 +57,6 @@ pipeline {
                             hostname
                             echo ${WORKSPACE}
                         '''
-                        unstash 'source'
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             sh '''
                                     
@@ -89,7 +86,6 @@ pipeline {
                                 pkill -f "flask run"
                                 pkill -f "wiremock"
                             '''
-                            stash includes: 'result-rest.xml', name: 'rest-results'
                         }
                         
                     }
@@ -104,8 +100,6 @@ pipeline {
                     hostname
                     echo ${WORKSPACE}
                 '''
-                unstash 'unit-results'
-                unstash 'rest-results'
                 junit 'result-*.xml'
                 
             }
