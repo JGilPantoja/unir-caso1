@@ -14,6 +14,7 @@ pipeline {
                     echo ${WORKSPACE}
                 '''
                 git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'
+                rm -f .coverage
             }
         }
         
@@ -31,30 +32,38 @@ pipeline {
                         /Users/javi/.local/bin/coverage report
                     '''
                 }
+                archiveArtifacts artifacts: '.coverage', allowEmptyArchive: true
             }
         }
 
         stage('Static') {
             steps {
                 sh '''
+                # Ejecutar análisis de código estático con Flake8
                 flake8 --exit-zero --format=pylint app > flake8.out
                 '''
                 recordIssues(
                     tools: [flake8(name: 'Flake8', pattern: 'flake8.out')],
                     qualityGates: [
-                        [threshold: 8, type: 'TOTAL', unstable: true],  
+                        [threshold: 8, type: 'TOTAL', unstable: true],
                         [threshold: 10, type: 'TOTAL', unstable: false] 
                     ]
                 )
             }
         }
+
         stage('Coverage') {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
                         export PYTHONPATH=$(pwd)
-                        /Users/javi/.local/bin/coverage combine
-                        /Users/javi/.local/bin/coverage xml
+                        if [ -f ".coverage" ]; then
+                            /Users/javi/.local/bin/coverage combine
+                            /Users/javi/.local/bin/coverage xml
+                        else
+                            echo "No coverage data found to combine."
+                            exit 1
+                        fi
                     '''
                 }
                 cobertura coberturaReportFile: 'coverage.xml',
@@ -62,6 +71,5 @@ pipeline {
                           lineCoverageTargets: '95,85,90'
             }
         }
-
     }
 }
