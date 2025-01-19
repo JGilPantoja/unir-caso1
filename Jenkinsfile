@@ -37,6 +37,7 @@ pipeline {
                         /Users/javi/.local/bin/coverage report
                     '''
                 }
+                junit 'result*.xml'
                 stash name: 'coverage-data', includes: '.coverage'
             }
         }
