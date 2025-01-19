@@ -12,7 +12,6 @@ pipeline {
                     whoami
                     hostname
                     echo ${WORKSPACE}
-                    # Eliminar archivos residuales de cobertura
                     rm -f ${WORKSPACE}/.coverage
                 '''
                 git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'
@@ -33,14 +32,13 @@ pipeline {
                         /Users/javi/.local/bin/coverage report
                     '''
                 }
-                archiveArtifacts artifacts: '.coverage', allowEmptyArchive: true
+                stash name: 'coverage-data', includes: '.coverage'
             }
         }
 
         stage('Static') {
             steps {
                 sh '''
-                # Ejecutar análisis de código estático con Flake8
                 flake8 --exit-zero --format=pylint app > flake8.out
                 '''
                 recordIssues(
@@ -59,8 +57,7 @@ pipeline {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
                         export PYTHONPATH=$(pwd)
-                        # Verificar y combinar datos de cobertura
-                        if [ -f "${WORKSPACE}/.coverage" ]; then
+                        if [ -f ".coverage" ]; then
                             /Users/javi/.local/bin/coverage combine
                             /Users/javi/.local/bin/coverage xml
                         else
