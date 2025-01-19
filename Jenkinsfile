@@ -12,9 +12,10 @@ pipeline {
                     whoami
                     hostname
                     echo ${WORKSPACE}
+                    # Eliminar archivos residuales de cobertura
                     rm -f ${WORKSPACE}/.coverage
                 '''
-                git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'            
+                git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'
             }
         }
         
@@ -46,7 +47,7 @@ pipeline {
                     tools: [flake8(name: 'Flake8', pattern: 'flake8.out')],
                     qualityGates: [
                         [threshold: 8, type: 'TOTAL', unstable: true],
-                        [threshold: 10, type: 'TOTAL', unstable: false] 
+                        [threshold: 10, type: 'TOTAL', unstable: false]
                     ]
                 )
             }
@@ -54,10 +55,12 @@ pipeline {
 
         stage('Coverage') {
             steps {
+                unstash 'coverage-data'
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
                         export PYTHONPATH=$(pwd)
-                        if [ -f ".coverage" ]; then
+                        # Verificar y combinar datos de cobertura
+                        if [ -f "${WORKSPACE}/.coverage" ]; then
                             /Users/javi/.local/bin/coverage combine
                             /Users/javi/.local/bin/coverage xml
                         else
