@@ -18,31 +18,32 @@ pipeline {
             }
         }
         
-        stage('Unit') {
-            steps {
-                sh '''
-                    whoami
-                    hostname
-                    echo ${WORKSPACE}
-                '''
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    sh '''
-                        export PYTHONPATH=$(pwd)
-                        /Users/javi/.local/bin/coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest test/unit
+stage('Unit') {
+    steps {
+        sh '''
+            whoami
+            hostname
+            echo ${WORKSPACE}
+        '''
+        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+            sh '''
+                export PYTHONPATH=$(pwd)
+                /Users/javi/.local/bin/coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest test/unit --junitxml=${WORKSPACE}/result.xml
 
-                        if [ ! -f ".coverage" ]; then
-                            echo "ERROR: Archivo .coverage no encontrado después de ejecutar coverage run."
-                            exit 1
-                        fi
-                        /Users/javi/.local/bin/coverage report
-                    '''
-                }
-                catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                    junit 'result.xml' 
-                }
-                stash name: 'coverage-data', includes: '.coverage'
-            }
+                if [ ! -f ".coverage" ]; then
+                    echo "ERROR: Archivo .coverage no encontrado después de ejecutar coverage run."
+                    exit 1
+                fi
+                /Users/javi/.local/bin/coverage report
+            '''
         }
+        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+            junit '${WORKSPACE}/result.xml' 
+        }
+        stash name: 'coverage-data', includes: '.coverage'
+    }
+}
+
 
         stage('Coverage') {
             steps {
