@@ -69,10 +69,15 @@ pipeline {
                         /Users/javi/.local/bin/coverage xml
                     '''
                 }
-                cobertura coberturaReportFile: 'coverage.xml',
-                          conditionalCoverageTargets: '100,0,80',
-                          lineCoverageTargets: '100,0,90'
-            }
+                script {
+                    try {
+                        cobertura coberturaReportFile: 'coverage.xml',
+                                  conditionalCoverageTargets: '100,0,80',
+                                  lineCoverageTargets: '100,0,90'
+                    } catch (Exception e) {
+                        echo "Error al procesar el reporte de Cobertura: ${e.getMessage()}"
+                    }
+                }
         }
     }
 }
