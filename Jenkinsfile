@@ -12,9 +12,9 @@ pipeline {
                     whoami
                     hostname
                     echo ${WORKSPACE}
+                    rm -f ${WORKSPACE}/.coverage
                 '''
-                git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'
-                rm -f .coverage
+                git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'            
             }
         }
         
