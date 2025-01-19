@@ -90,26 +90,23 @@ pipeline {
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
-                        export FLASK_PORT=${FLASK_PORT}
+                        export FLASK_PORT=5000
                         export FLASK_APP=app/api.py:api_application
-
+                        
                         nohup flask run --port=${FLASK_PORT} > flask.log 2>&1 &
-
+        
                         for i in {1..10}; do
                             curl -s http://127.0.0.1:${FLASK_PORT} > /dev/null && break
                             sleep 1
                         done
-
-                        jmeter -n -t test-plan.jmx -l results.jtl
-
+                        
+                        /Users/javi/Downloads/unir/apache-jmeter-5.6.3/bin/jmeter -n -t ${WORKSPACE}/test-plan.jmx -l flask.jtl
                         pkill -f "flask run"
                     '''
                 }
-                
-                script {
-                    publishPerformanceReport parsers: [jmeterParser(pattern: 'results.jtl')]
-                }
+                perfReport sourceDataFiles: 'flask.jtl'
             }
         }
+
     }
 }
