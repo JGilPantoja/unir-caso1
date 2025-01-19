@@ -18,57 +18,44 @@ pipeline {
             }
         }
         
-stage('Unit') {
-    steps {
-        sh '''
-            whoami
-            hostname
-            echo ${WORKSPACE}
-        '''
-        catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-            sh '''
-                export PYTHONPATH=$(pwd)
-                /Users/javi/.local/bin/coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest test/unit --junitxml=${WORKSPACE}/result.xml
-
-                if [ ! -f ".coverage" ]; then
-                    echo "ERROR: Archivo .coverage no encontrado después de ejecutar coverage run."
-                    exit 1
-                fi
-                /Users/javi/.local/bin/coverage report
-            '''
-        }
-        catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-            junit '${WORKSPACE}/result.xml' 
-        }
-        stash name: 'coverage-data', includes: '.coverage'
-    }
-}
-
-
-        stage('Coverage') {
+        stage('Unit') {
             steps {
-                unstash 'coverage-data'
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
                         export PYTHONPATH=$(pwd)
+                        /Users/javi/.local/bin/coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest --junitxml=result-unit.xml test/unit
+
                         if [ ! -f ".coverage" ]; then
-                            echo "ERROR: Archivo .coverage no encontrado después de unstash."
+                            echo "ERROR: Archivo .coverage no encontrado después de ejecutar coverage run."
+                            exit 1
+                        fi
+                        if [ ! -f "result-unit.xml" ]; then
+                            echo "ERROR: Archivo result-unit.xml no encontrado después de ejecutar pytest."
                             exit 1
                         fi
                         /Users/javi/.local/bin/coverage xml
                     '''
                 }
-                script {
-                    try {
-                        cobertura coberturaReportFile: 'coverage.xml',
-                                  conditionalCoverageTargets: '100,0,80',
-                                  lineCoverageTargets: '100,0,90'
-                    } catch (Exception e) {
-                        echo "Error al procesar el reporte de Cobertura: ${e.getMessage()}"
+                junit 'result-unit.xml'
+            }
+        }
+
+        stage('Coverage') {
+            steps {
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    script {
+                        try {
+                            cobertura coberturaReportFile: 'coverage.xml',
+                                      conditionalCoverageTargets: '100,0,80',
+                                      lineCoverageTargets: '100,0,90'
+                        } catch (Exception e) {
+                            echo "Error al procesar el reporte de Cobertura: ${e.getMessage()}"
+                        }
                     }
                 }
             }
         }
+
         stage('Static') {
             steps {
                 sh '''
