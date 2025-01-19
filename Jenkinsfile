@@ -15,7 +15,6 @@ pipeline {
                     rm -f ${WORKSPACE}/.coverage
                 '''
                 git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'
-                deleteDir()
             }
         }
         
@@ -39,10 +38,9 @@ pipeline {
                     '''
                 }
                 catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                    junit 'result.xml' // Integra el plugin JUnit, pero ignora cualquier fallo o advertencia.
+                    junit 'result.xml' 
                 }
                 stash name: 'coverage-data', includes: '.coverage'
-                deleteDir()
             }
         }
 
@@ -68,7 +66,6 @@ pipeline {
                         echo "Error al procesar el reporte de Cobertura: ${e.getMessage()}"
                     }
                 }
-                deleteDir()
             }
         }
         stage('Static') {
@@ -83,7 +80,6 @@ pipeline {
                         [threshold: 10, type: 'TOTAL', unstable: false]
                     ]
                 )
-                deleteDir()
             }
         }
     }
