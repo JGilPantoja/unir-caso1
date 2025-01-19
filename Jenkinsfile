@@ -78,6 +78,7 @@ pipeline {
                         echo "Error al procesar el reporte de Cobertura: ${e.getMessage()}"
                     }
                 }
+            }
         }
     }
 }
