@@ -70,5 +70,20 @@ pipeline {
                 )
             }
         }
+        stage('Security') {
+            steps {
+                sh '''
+                bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
+                '''
+                recordIssues(
+                    tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')],
+                    qualityGates: [
+                        [threshold: 2, type: 'TOTAL', unstable: true],  
+                        [threshold: 4, type: 'TOTAL', unstable: false] 
+                    ]
+                )
+            }
+        }
+
     }
 }
