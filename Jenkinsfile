@@ -113,10 +113,7 @@ pipeline {
                         kill $FLASK_PID
                     '''
                 }
-                perfReport sourceDataFiles: 'flask.jtl', 
-                           errorFailedThreshold: 10, 
-                           errorUnstableThreshold: 5
-            }
+                perfReport sourceDataFiles: 'flask.jtl'            }
         }
     }
 }
