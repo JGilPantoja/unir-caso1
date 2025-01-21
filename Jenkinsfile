@@ -106,7 +106,6 @@ pipeline {
                             sleep 1
                         done
         
-                         # /Users/javi/Downloads/unir/apache-jmeter-5.6.3/bin/jmeter -n -t ${WORKSPACE}/test-plan.jmx -l flask.jtl
                         jmeter -n -t ${WORKSPACE}/test-plan.jmx -l flask.jtl
         
                         # Detener Flask
