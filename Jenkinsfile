@@ -16,7 +16,6 @@ pipeline {
                     rm -f ${WORKSPACE}/.coverage
                 '''
                 git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'
-                sh 'cp /Users/javi/Downloads/unir/apache-jmeter-5.6.3/bin/test-plan.jmx ${WORKSPACE}/test-plan.jmx'
             }
         }
         
