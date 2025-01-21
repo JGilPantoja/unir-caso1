@@ -87,22 +87,33 @@ pipeline {
         }
         stage('Performance') {
             steps {
-                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                    sh '''
-                        export FLASK_PORT=5000
-                        export FLASK_APP=app/api.py:api_application
-                        
-                        nohup flask run --port=${FLASK_PORT} > flask.log 2>&1 &
-        
-                        for i in {1..10}; do
-                            curl -s http://127.0.0.1:${FLASK_PORT} > /dev/null && break
-                            sleep 1
-                        done
-                        
-                        /Users/javi/Downloads/unir/apache-jmeter-5.6.3/bin/jmeter -n -t ${WORKSPACE}/test-plan.jmx -l flask.jtl
-                        pkill -f "flask run"
-                    '''
-                }
+                    steps {
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                            sh '''
+                                export FLASK_PORT=5000
+                                export FLASK_APP=app/api.py:api_application
+                                
+                                rm -f flask.jtl flask.log
+                                nohup flask run --port=${FLASK_PORT} > flask.log 2>&1 &
+                                FLASK_PID=$!
+                
+                                for i in {1..10}; do
+                                    curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:${FLASK_PORT} | grep -q "200" && break
+                                    if [ $i -eq 10 ]; then
+                                        echo "ERROR: Flask no se inició correctamente."
+                                        kill $FLASK_PID
+                                        exit 1
+                                    fi
+                                    sleep 1
+                                done
+                
+                                # /Users/javi/Downloads/unir/apache-jmeter-5.6.3/bin/jmeter -n -t ${WORKSPACE}/test-plan.jmx -l flask.jtl
+                                jmeter -n -t ${WORKSPACE}/test-plan.jmx -l flask.jtl
+                
+                                # Detener Flask
+                                kill $FLASK_PID
+                            '''
+                        }
                 perfReport sourceDataFiles: 'flask.jtl'
             }
         }
