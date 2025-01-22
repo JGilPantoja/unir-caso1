@@ -18,84 +18,38 @@ pipeline {
                 '''
                 git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'
                 stash includes: '**', name: 'source'
+                deleteDir()
             }
         }
         
-        stage('Tests') {
-            parallel {
-                stage('Unit') {
-                    agent { label 'agent1' }
-                    steps {
-                        sh '''
-                            whoami
-                            hostname
-                            echo ${WORKSPACE}
-                        '''
-                        unstash 'source'
-                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                            sh '''
-                                export PYTHONPATH=$(pwd)
-                                /Users/javi/.local/bin/coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest --junitxml=result-unit.xml test/unit
+        stage('Unit') {
+            agent { label 'agent1' }
+            steps {
+                sh '''
+                    whoami
+                    hostname
+                    echo ${WORKSPACE}
+                '''
+                unstash 'source'
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    sh '''
+                        export PYTHONPATH=$(pwd)
+                        /Users/javi/.local/bin/coverage run --branch --source=app --omit=app/__init__.py,app/api.py -m pytest --junitxml=result-unit.xml test/unit
 
-                                if [ ! -f ".coverage" ]; then
-                                    echo "ERROR: Archivo .coverage no encontrado después de ejecutar coverage run."
-                                    exit 1
-                                fi
-                                if [ ! -f "result-unit.xml" ]; then
-                                    echo "ERROR: Archivo result-unit.xml no encontrado después de ejecutar pytest."
-                                    exit 1
-                                fi
-                                /Users/javi/.local/bin/coverage xml
-                            '''
-                            stash includes: '.coverage, result-unit.xml, coverage.xml', name: 'unit-results'
-                        }
-                        junit 'result-unit.xml'
-                    }
+                        if [ ! -f ".coverage" ]; then
+                            echo "ERROR: Archivo .coverage no encontrado después de ejecutar coverage run."
+                            exit 1
+                        fi
+                        if [ ! -f "result-unit.xml" ]; then
+                            echo "ERROR: Archivo result-unit.xml no encontrado después de ejecutar pytest."
+                            exit 1
+                        fi
+                        /Users/javi/.local/bin/coverage xml
+                    '''
+                    stash includes: '.coverage, result-unit.xml, coverage.xml', name: 'unit-results'
                 }
-
-                stage('Static') {
-                    agent { label 'agent2' }
-                    steps {
-                        sh '''
-                            whoami
-                            hostname
-                            echo ${WORKSPACE}
-                        '''
-                        unstash 'source'
-                        sh '''
-                        flake8 --exit-zero --format=pylint app > flake8.out
-                        '''
-                        recordIssues(
-                            tools: [flake8(name: 'Flake8', pattern: 'flake8.out')],
-                            qualityGates: [
-                                [threshold: 8, type: 'TOTAL', unstable: true],
-                                [threshold: 10, type: 'TOTAL', unstable: false]
-                            ]
-                        )
-                    }
-                }
-
-                stage('Security') {
-                    agent { label 'agent2' }
-                    steps {
-                        sh '''
-                            whoami
-                            hostname
-                            echo ${WORKSPACE}
-                        '''
-                        unstash 'source'
-                        sh '''
-                        bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
-                        '''
-                        recordIssues(
-                            tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')],
-                            qualityGates: [
-                                [threshold: 2, type: 'TOTAL', unstable: true],  
-                                [threshold: 4, type: 'TOTAL', unstable: false] 
-                            ]
-                        )
-                    }
-                }
+                junit 'result-unit.xml'
+                deleteDir()
             }
         }
 
@@ -108,11 +62,6 @@ pipeline {
                     echo ${WORKSPACE}
                 '''
                 unstash 'unit-results'
-                script {
-                    if (!fileExists('coverage.xml')) {
-                        error "El archivo coverage.xml no se encuentra después de unstash."
-                    }
-                }
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     script {
                         try {
@@ -124,6 +73,53 @@ pipeline {
                         }
                     }
                 }
+                deleteDir()
+            }
+        }
+
+        stage('Static') {
+            agent { label 'agent2' }
+            steps {
+                sh '''
+                    whoami
+                    hostname
+                    echo ${WORKSPACE}
+                '''
+                unstash 'source'
+                sh '''
+                flake8 --exit-zero --format=pylint app > flake8.out
+                '''
+                recordIssues(
+                    tools: [flake8(name: 'Flake8', pattern: 'flake8.out')],
+                    qualityGates: [
+                        [threshold: 8, type: 'TOTAL', unstable: true],
+                        [threshold: 10, type: 'TOTAL', unstable: false]
+                    ]
+                )
+                deleteDir()
+            }
+        }
+
+        stage('Security') {
+            agent { label 'agent2' }
+            steps {
+                sh '''
+                    whoami
+                    hostname
+                    echo ${WORKSPACE}
+                '''
+                unstash 'source'
+                sh '''
+                bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
+                '''
+                recordIssues(
+                    tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')],
+                    qualityGates: [
+                        [threshold: 2, type: 'TOTAL', unstable: true],  
+                        [threshold: 4, type: 'TOTAL', unstable: false] 
+                    ]
+                )
+                deleteDir()
             }
         }
 
@@ -157,10 +153,12 @@ pipeline {
         
                         jmeter -n -t ${WORKSPACE}/test-plan.jmx -l flask.jtl
         
+                        # Detener Flask
                         kill $FLASK_PID
                     '''
                 }
                 perfReport sourceDataFiles: 'flask.jtl'
+                deleteDir()
             }
         }
     }
