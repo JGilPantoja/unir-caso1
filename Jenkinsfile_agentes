@@ -108,9 +108,10 @@ pipeline {
                     echo ${WORKSPACE}
                 '''
                 unstash 'unit-results'
-                sh 'ls -la'
-                if (!fileExists('coverage.xml')) {
-                    error "El archivo coverage.xml no se encuentra después de unstash."
+                script {
+                    if (!fileExists('coverage.xml')) {
+                        error "El archivo coverage.xml no se encuentra después de unstash."
+                    }
                 }
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     script {
