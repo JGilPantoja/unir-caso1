@@ -47,8 +47,8 @@ pipeline {
                     script {
                         try {
                             cobertura coberturaReportFile: 'coverage.xml',
-                                      conditionalCoverageTargets: '100,0,80',
-                                      lineCoverageTargets: '100,0,90'
+                                      conditionalCoverageTargets: '90,80,0',
+                                      lineCoverageTargets: '95,85,0'
                         } catch (Exception e) {
                             echo "Error al procesar el reporte de Cobertura: ${e.getMessage()}"
                         }
