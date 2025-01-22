@@ -18,7 +18,7 @@ pipeline {
                 '''
                 git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'
                 stash includes: '**', name: 'source'
-                deleteDir()
+                
             }
         }
         
@@ -51,7 +51,7 @@ pipeline {
                             stash includes: '.coverage, result-unit.xml, coverage.xml', name: 'unit-results'
                         }
                         junit 'result-unit.xml'
-                        deleteDir()
+                        
                     }
                 }
 
@@ -74,7 +74,7 @@ pipeline {
                                 [threshold: 10, type: 'TOTAL', unstable: false]
                             ]
                         )
-                        deleteDir()
+                        
                     }
                 }
 
@@ -97,7 +97,7 @@ pipeline {
                                 [threshold: 4, type: 'TOTAL', unstable: false] 
                             ]
                         )
-                        deleteDir()
+                        
                     }
                 }
             }
@@ -123,7 +123,7 @@ pipeline {
                         }
                     }
                 }
-                deleteDir()
+                
             }
         }
 
@@ -162,7 +162,7 @@ pipeline {
                     '''
                 }
                 perfReport sourceDataFiles: 'flask.jtl'
-                deleteDir()
+                
             }
         }
     }
