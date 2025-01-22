@@ -8,6 +8,7 @@ pipeline {
 
     stages {
         stage('getCode') {
+            agent { label 'agent1' }
             steps {
                 sh '''
                     whoami
@@ -16,11 +17,20 @@ pipeline {
                     rm -f ${WORKSPACE}/.coverage
                 '''
                 git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'
+                stash includes: '**', name: 'source'
+                deleteDir()
             }
         }
         
         stage('Unit') {
+            agent { label 'agent1' }
             steps {
+                sh '''
+                    whoami
+                    hostname
+                    echo ${WORKSPACE}
+                '''
+                unstash 'source'
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     sh '''
                         export PYTHONPATH=$(pwd)
@@ -36,13 +46,21 @@ pipeline {
                         fi
                         /Users/javi/.local/bin/coverage xml
                     '''
+                    stash includes: '.coverage, result-unit.xml', name: 'unit-results'
                 }
-                junit 'result-unit.xml'
+                deleteDir()
             }
         }
 
         stage('Coverage') {
+            agent { label 'agent1' }
             steps {
+                sh '''
+                    whoami
+                    hostname
+                    echo ${WORKSPACE}
+                '''
+                unstash 'unit-results'
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                     script {
                         try {
@@ -54,11 +72,19 @@ pipeline {
                         }
                     }
                 }
+                deleteDir()
             }
         }
 
         stage('Static') {
+            agent { label 'agent2' }
             steps {
+                sh '''
+                    whoami
+                    hostname
+                    echo ${WORKSPACE}
+                '''
+                unstash 'source'
                 sh '''
                 flake8 --exit-zero --format=pylint app > flake8.out
                 '''
@@ -69,10 +95,19 @@ pipeline {
                         [threshold: 10, type: 'TOTAL', unstable: false]
                     ]
                 )
+                deleteDir()
             }
         }
+
         stage('Security') {
+            agent { label 'agent2' }
             steps {
+                sh '''
+                    whoami
+                    hostname
+                    echo ${WORKSPACE}
+                '''
+                unstash 'source'
                 sh '''
                 bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
                 '''
@@ -83,11 +118,20 @@ pipeline {
                         [threshold: 4, type: 'TOTAL', unstable: false] 
                     ]
                 )
+                deleteDir()
             }
         }
+
         stage('Performance') {
+            agent { label 'agent2' }
             steps {
                 catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    sh '''
+                        whoami
+                        hostname
+                        echo ${WORKSPACE}
+                    '''
+                    unstash 'source'
                     sh '''
                         export FLASK_PORT=5000
                         export FLASK_APP=app/api.py:api_application
@@ -112,7 +156,9 @@ pipeline {
                         kill $FLASK_PID
                     '''
                 }
-                perfReport sourceDataFiles: 'flask.jtl'            }
+                perfReport sourceDataFiles: 'flask.jtl'
+                deleteDir()
+            }
         }
     }
 }
