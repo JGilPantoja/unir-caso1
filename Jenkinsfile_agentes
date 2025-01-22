@@ -48,6 +48,7 @@ pipeline {
                     '''
                     stash includes: '.coverage, result-unit.xml', name: 'unit-results'
                 }
+                junit 'result-unit.xml'
                 deleteDir()
             }
         }
