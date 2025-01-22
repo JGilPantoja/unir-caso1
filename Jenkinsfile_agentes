@@ -46,7 +46,7 @@ pipeline {
                         fi
                         /Users/javi/.local/bin/coverage xml
                     '''
-                    stash includes: '.coverage, result-unit.xml', name: 'unit-results'
+                    stash includes: '.coverage, result-unit.xml, coverage.xml', name: 'unit-results'
                 }
                 junit 'result-unit.xml'
                 deleteDir()
