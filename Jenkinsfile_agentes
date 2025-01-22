@@ -117,15 +117,16 @@ pipeline {
                         try {
                             cobertura coberturaReportFile: 'coverage.xml',
                                       conditionalCoverageTargets: '90,80,0',
-                                      lineCoverageTargets: '95,85,0'
+                                      lineCoverageTargets: '95,85,0',
+                                      onlyStable: false // Permite ejecución en builds UNSTABLE
                         } catch (Exception e) {
                             echo "Error al procesar el reporte de Cobertura: ${e.getMessage()}"
                         }
                     }
                 }
-                deleteDir()
             }
         }
+
 
         stage('Performance') {
             agent { label 'agent2' }
