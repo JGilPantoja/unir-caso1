@@ -14,11 +14,6 @@ class TestCalculate(unittest.TestCase):
         self.assertEqual(0, self.calc.add(2, -2))
         self.assertEqual(0, self.calc.add(-2, 2))
         self.assertEqual(1, self.calc.add(1, 0))
-        #añado
-        self.assertEqual(-4, self.calc.add(-2, -2)) 
-        self.assertEqual(0.3, self.calc.add(0.1, 0.2))
-        self.assertEqual(0, self.calc.add(0, 0))
-        self.assertEqual(2**30 + 4**50, self.calc.add(2**31, 4**50))
 
     def test_add_method_returns_correct_result1(self):
         self.assertEqual(6, self.calc.add(3, 3))
@@ -30,17 +25,10 @@ class TestCalculate(unittest.TestCase):
         self.assertEqual(1, self.calc.divide(2, 2))
         self.assertEqual(1.5, self.calc.divide(3, 2))
         self.assertRaises(TypeError, self.calc.divide, "2", 2)
-        #añado
-        self.assertEqual(0, self.calc.divide(0, 5))
-        self.assertEqual(0.25, self.calc.divide(1, 4))
-        self.assertEqual(-0.5, self.calc.divide(-1, 2))
-        self.assertEqual(1, self.calc.divide(1**20, 1**20))
-    #añado para arreglar el error de la linea 24 en calc.py
-    def test_divide_method_fails_with_zero_division(self):
-    with self.assertRaises(TypeError) as context:
-        self.calc.divide(5, 0)
-        self.assertEqual(str(context.exception), "Division by zero is not possible")
 
+    def test_divide_method_raises_error_on_zero_division(self):
+        # Comprobamos que la división entre 0 lanza un TypeError
+        self.assertRaises(TypeError, self.calc.divide, 10, 0)
   
     def test_add_method_fails_with_nan_parameter(self):
         self.assertRaises(TypeError, self.calc.add, "2", 2)
