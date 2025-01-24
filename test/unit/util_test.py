@@ -22,6 +22,17 @@ class TestUtil(unittest.TestCase):
         self.assertRaises(TypeError, util.convert_to_number, "s")
         self.assertRaises(TypeError, util.convert_to_number, None)
         self.assertRaises(TypeError, util.convert_to_number, object())
+        #añado
+        self.assertRaises(TypeError, util.convert_to_number, " ")
+        self.assertRaises(TypeError, util.convert_to_number, " 123")
+        self.assertRaises(TypeError, util.convert_to_number, "123 ")
+        self.assertRaises(TypeError, util.convert_to_number, "12.3.4")
+        self.assertRaises(TypeError, util.convert_to_number, "12-34")
+        self.assertRaises(TypeError, util.convert_to_number, "12a34")
+        self.assertRaises(TypeError, util.convert_to_number, [])
+        self.assertRaises(TypeError, util.convert_to_number, {})
+        self.assertRaises(TypeError, util.convert_to_number, ())
+        self.assertRaises(TypeError, util.convert_to_number, set())
 
 if __name__ == "__main__":  # pragma: no cover
     unittest.main()
