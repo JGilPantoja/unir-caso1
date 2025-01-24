@@ -35,6 +35,11 @@ class TestCalculate(unittest.TestCase):
         self.assertEqual(0.25, self.calc.divide(1, 4))
         self.assertEqual(-0.5, self.calc.divide(-1, 2))
         self.assertEqual(1, self.calc.divide(1**20, 1**20))
+    #añado para arreglar el error de la linea 24 en calc.py
+    def test_divide_method_fails_with_zero_division(self):
+        with self.assertRaises(TypeError, msg="Division by zero is not possible"):
+        self.calc.divide(5, 0)
+
   
     def test_add_method_fails_with_nan_parameter(self):
         self.assertRaises(TypeError, self.calc.add, "2", 2)
