@@ -8,12 +8,6 @@ pipeline {
 
     
     stages {
-        stage('Cleanup Workspace') {
-            steps {
-                cleanWs()
-            }
-        }
-
         stage('getCode') {
             steps {
                 sh '''
