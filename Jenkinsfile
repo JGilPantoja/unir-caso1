@@ -6,7 +6,14 @@ pipeline {
         FLASK_PORT = "5000"
     }
 
+    
     stages {
+        stage('Cleanup Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
+
         stage('getCode') {
             steps {
                 sh '''
@@ -15,8 +22,6 @@ pipeline {
                     echo ${WORKSPACE}
                     rm -f ${WORKSPACE}/.coverage
                     rm -f .coverage coverage.xml result-unit.xml
-                    ls -la
-                    whoami
                 '''
                 git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'
             }
