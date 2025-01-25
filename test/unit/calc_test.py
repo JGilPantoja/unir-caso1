@@ -27,8 +27,8 @@ class TestCalculate(unittest.TestCase):
         self.assertRaises(TypeError, self.calc.divide, "2", 2)
 
     def test_divide_method_raises_error_on_zero_division(self):
-    with self.assertRaises(TypeError):
-        self.calc.divide(10, 0)
+        with self.assertRaises(TypeError):
+            self.calc.divide(10, 0)
 
   
     def test_add_method_fails_with_nan_parameter(self):
