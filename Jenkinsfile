@@ -16,6 +16,7 @@ pipeline {
                     rm -f ${WORKSPACE}/.coverage
                     rm -f .coverage coverage.xml result-unit.xml
                     ls -la
+                    whoami
                 '''
                 git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'
             }
