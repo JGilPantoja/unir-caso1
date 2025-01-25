@@ -24,7 +24,7 @@ pipeline {
                     rm -f ${WORKSPACE}/coverage.xml
                     rm -f ${WORKSPACE}/result-unit.xml
                 '''
-                git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'
+                git branch: 'feature_fix_coverage', url: 'https://github.com/JGilPantoja/unir-caso1'
                 sh '''
                 cat ${WORKSPACE}/test/unit/calc_test.py
                 '''
