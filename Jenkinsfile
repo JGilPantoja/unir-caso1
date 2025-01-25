@@ -37,6 +37,8 @@ pipeline {
                             exit 1
                         fi
                         /Users/javi/.local/bin/coverage xml
+                        /Users/javi/.local/bin/coverage html
+
                     '''
                 }
                 junit 'result-unit.xml'
