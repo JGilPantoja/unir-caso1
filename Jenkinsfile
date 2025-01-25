@@ -21,7 +21,9 @@ pipeline {
                     hostname
                     echo ${WORKSPACE}
                     rm -f ${WORKSPACE}/.coverage
-                    rm -f .coverage coverage.xml result-unit.xml
+                    rm -f ${WORKSPACE}/coverage.xml
+                    rm -f ${WORKSPACE}/result-unit.xml
+                    cat ${WORKSPACE}/test/unit/calc_test.py
                 '''
                 git branch: 'master', url: 'https://github.com/JGilPantoja/unir-caso1'
             }
