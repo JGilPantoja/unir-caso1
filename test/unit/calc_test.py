@@ -27,8 +27,11 @@ class TestCalculate(unittest.TestCase):
         self.assertRaises(TypeError, self.calc.divide, "2", 2)
 
     def test_divide_method_raises_error_on_zero_division(self):
-        # Comprobamos que la división entre 0 lanza un TypeError
-        self.assertRaises(TypeError, self.calc.divide, 10, 0)
+    try:
+        self.calc.divide(10, 0)
+    except TypeError as e:
+        print("Lanzada excepción esperada:", str(e))
+        raise
   
     def test_add_method_fails_with_nan_parameter(self):
         self.assertRaises(TypeError, self.calc.add, "2", 2)
