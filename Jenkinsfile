@@ -20,7 +20,9 @@ pipeline {
                     whoami
                     hostname
                     echo ${WORKSPACE}
-
+                    rm -f ${WORKSPACE}/.coverage
+                    rm -f ${WORKSPACE}/coverage.xml
+                    rm -f ${WORKSPACE}/result-unit.xml
                 '''
                 git branch: 'feature_fix_coverage', url: 'https://github.com/JGilPantoja/unir-caso1'                
             }
